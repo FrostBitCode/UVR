@@ -58,6 +58,8 @@ import ssl
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 logging.info('UVR BEGIN')
 
+PREVIOUS_PATCH_WIN = 'UVR_Patch_1_12_23_14_54'
+
 is_dnd_compatible = True
 banner_placement = -2
 
@@ -165,6 +167,8 @@ VR_HASH_DIR = os.path.join(VR_MODELS_DIR, 'model_data')
 VR_HASH_JSON = os.path.join(VR_MODELS_DIR, 'model_data', 'model_data.json')
 MDX_HASH_DIR = os.path.join(MDX_MODELS_DIR, 'model_data')
 MDX_HASH_JSON = os.path.join(MDX_MODELS_DIR, 'model_data', 'model_data.json')
+DEMUCS_MODEL_NAME_SELECT = os.path.join(DEMUCS_MODELS_DIR, 'model_data', 'model_name_mapper.json')
+MDX_MODEL_NAME_SELECT = os.path.join(MDX_MODELS_DIR, 'model_data', 'model_name_mapper.json')
 ENSEMBLE_CACHE_DIR = os.path.join(BASE_PATH, 'gui_data', 'saved_ensembles')
 SETTINGS_CACHE_DIR = os.path.join(BASE_PATH, 'gui_data', 'saved_settings')
 VR_PARAM_DIR = os.path.join(BASE_PATH, 'lib_v5', 'vr_network', 'modelparams')
@@ -244,6 +248,8 @@ class ModelData():
         self.is_primary_stem_only = root.is_primary_stem_only_var.get()
         self.is_secondary_stem_only = root.is_secondary_stem_only_var.get()
         self.is_denoise = root.is_denoise_var.get()
+        self.is_mdx_batch_mode = False
+        self.mdx_batch_size = int(root.mdx_batch_size_var.get())
         self.wav_type_set = root.wav_type_set
         self.mp3_bit_set = root.mp3_bit_set_var.get()
         self.save_format = root.save_format_var.get()
@@ -322,6 +328,7 @@ class ModelData():
             self.is_secondary_model_activated = root.mdx_is_secondary_model_activate_var.get() if not is_secondary_model else False
             self.margin = int(root.margin_var.get())
             self.chunks = root.determine_auto_chunks(root.chunks_var.get(), self.is_gpu_conversion)
+            self.is_mdx_batch_mode = True if root.chunks_var.get() == BATCH_MODE else False
             self.get_mdx_model_path()
             self.get_model_hash()
             if self.model_hash:
@@ -392,7 +399,7 @@ class ModelData():
               
     def get_mdx_model_path(self):
         
-        for file_name, chosen_mdx_model in MDX_NAME_SELECT.items():
+        for file_name, chosen_mdx_model in root.mdx_name_select_MAPPER.items():
             if self.model_name in chosen_mdx_model:
                 self.model_path = os.path.join(MDX_MODELS_DIR, f"{file_name}.onnx")
                 break
@@ -406,7 +413,7 @@ class ModelData():
         demucs_newer = [True for x in DEMUCS_NEWER_TAGS if x in self.model_name]
         demucs_model_dir = DEMUCS_NEWER_REPO_DIR if demucs_newer else DEMUCS_MODELS_DIR
         
-        for file_name, chosen_model in DEMUCS_NAME_SELECT.items():
+        for file_name, chosen_model in root.demucs_name_select_MAPPER.items():
             if self.model_name in chosen_model:
                 self.model_path = os.path.join(demucs_model_dir, file_name)
                 break
@@ -523,6 +530,7 @@ class Ensembler():
         stem_outputs = self.get_files_to_ensemble(folder=export_path, prefix=audio_file_base, suffix=f"_({stem_tag}).wav")
         audio_file_output = f"{self.is_testing_audio}{audio_file_base}{self.chosen_ensemble}_({stem_tag})"
         stem_save_path = os.path.join('{}'.format(self.main_export_path),'{}.wav'.format(audio_file_output))
+        
         if stem_outputs:
             spec_utils.ensemble_inputs(stem_outputs, algorithm, self.is_normalization, self.wav_type_set, stem_save_path)
             save_format(stem_save_path, self.save_format, self.mp3_bit_set)
@@ -537,11 +545,31 @@ class Ensembler():
                 except Exception as e:
                     print(e)
 
-    def ensemble_manual(self, audio_inputs, audio_file_base):
+    def ensemble_manual(self, audio_inputs, audio_file_base, is_bulk=False):
         """Processes the given outputs and ensembles them with the chosen algorithm"""
         
+        is_mv_sep = True
+        
+        if is_bulk:
+            number_list = list(set([os.path.basename(i).split("_")[0] for i in audio_inputs]))
+            print(number_list)
+            for n in number_list:
+                current_list = [i for i in audio_inputs if os.path.basename(i).startswith(n)]
+                print(current_list)
+                audio_file_base = os.path.basename(current_list[0]).split('.wav')[0]
+                stem_testing = "instrum" if "Instrumental" in audio_file_base else "vocals"
+                if is_mv_sep:
+                    audio_file_base = audio_file_base.split("_")
+                    audio_file_base = f"{audio_file_base[1]}_{audio_file_base[2]}_{stem_testing}"
+                self.ensemble_manual_process(current_list, audio_file_base, is_bulk)
+        else:
+            self.ensemble_manual_process(audio_inputs, audio_file_base, is_bulk)
+            
+    def ensemble_manual_process(self, audio_inputs, audio_file_base, is_bulk):
+        
         algorithm = root.choose_algorithm_var.get()
-        stem_save_path = os.path.join('{}'.format(self.main_export_path),'{}{}_({}).wav'.format(self.is_testing_audio, audio_file_base, algorithm))
+        algorithm_text = "" if is_bulk else f"_({root.choose_algorithm_var.get()})"
+        stem_save_path = os.path.join('{}'.format(self.main_export_path),'{}{}{}.wav'.format(self.is_testing_audio, audio_file_base, algorithm_text))
         spec_utils.ensemble_inputs(audio_inputs, algorithm, self.is_normalization, self.wav_type_set, stem_save_path)
         save_format(stem_save_path, self.save_format, self.mp3_bit_set)
 
@@ -797,6 +825,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         self.clear_cache_torch = False
         self.vr_hash_MAPPER = load_model_hash_data(VR_HASH_JSON)
         self.mdx_hash_MAPPER = load_model_hash_data(MDX_HASH_JSON)
+        self.mdx_name_select_MAPPER = load_model_hash_data(MDX_MODEL_NAME_SELECT)
+        self.demucs_name_select_MAPPER = load_model_hash_data(DEMUCS_MODEL_NAME_SELECT)
         self.is_gpu_available = torch.cuda.is_available() if not OPERATING_SYSTEM == 'Darwin' else torch.backends.mps.is_available()
         self.is_process_stopped = False
         self.inputs_from_dir = []
@@ -968,7 +998,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         if arch_type == MDX_ARCH_TYPE:
             model_data: List[ModelData] = [ModelData(model, MDX_ARCH_TYPE)]
         if arch_type == DEMUCS_ARCH_TYPE:
-            model_data: List[ModelData] = [ModelData(model, DEMUCS_ARCH_TYPE)]
+            model_data: List[ModelData] = [ModelData(model, DEMUCS_ARCH_TYPE)]#
 
         return model_data
         
@@ -979,7 +1009,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         if network == MDX_ARCH_TYPE:
             dir = MDX_HASH_DIR     
         
-        [os.remove(os.path.join(dir, x)) for x in os.listdir(dir) if x not in 'model_data.json']
+        [os.remove(os.path.join(dir, x)) for x in os.listdir(dir) if x not in ['model_data.json', 'model_name_mapper.json']]
         self.vr_model_var.set(CHOOSE_MODEL)
         self.mdx_net_model_var.set(CHOOSE_MODEL)
         self.model_data_table.clear()
@@ -1361,12 +1391,24 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         invalid = lambda:(var.set(default[0]))
         combobox.config(validate='focus', validatecommand=(self.register(validation), '%P'), invalidcommand=(self.register(invalid),))
 
+    def combo_box_selection_clear(self):
+        for option in self.options_Frame.winfo_children():
+            if type(option) is ttk.Combobox:
+                option.selection_clear()
+
     def bind_widgets(self):
         """Bind widgets to the drag & drop mechanic"""
         
-        self.chosen_audio_tool_align = tk.BooleanVar(value=True)
-        add_align = lambda e:(self.chosen_audio_tool_Option['menu'].add_radiobutton(label=ALIGN_INPUTS, command=tk._setit(self.chosen_audio_tool_var, ALIGN_INPUTS)), self.chosen_audio_tool_align.set(False)) if self.chosen_audio_tool_align else None
-        
+        self.chosen_audio_tool_align = tk.BooleanVar(value=True)        
+        other_items = [self.options_Frame, self.filePaths_Frame, self.title_Label, self.progressbar, self.conversion_Button, self.settings_Button, self.stop_Button, self.command_Text]
+        all_widgets = self.options_Frame.winfo_children() + self.filePaths_Frame.winfo_children() + other_items
+
+        for option in all_widgets:
+            if type(option) is ttk.Combobox:
+                option.bind("<FocusOut>", lambda e:option.selection_clear())
+            else:
+                option.bind('<Button-1>', lambda e:(option.focus(), self.combo_box_selection_clear()))
+
         if is_dnd_compatible:
             self.filePaths_saveTo_Button.drop_target_register(DND_FILES)
             self.filePaths_saveTo_Entry.drop_target_register(DND_FILES)
@@ -1376,10 +1418,10 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.filePaths_saveTo_Entry.dnd_bind('<<Drop>>', lambda e: drop(e, accept_mode='folder'))    
             
         self.ensemble_listbox_Option.bind('<<ListboxSelect>>', lambda e: self.chosen_ensemble_var.set(CHOOSE_ENSEMBLE_OPTION))
-        self.options_Frame.bind(right_click_button, lambda e:self.right_click_menu_popup(e, main_menu=True))
-        self.filePaths_musicFile_Entry.bind(right_click_button, lambda e:self.input_right_click_menu(e))
-        self.filePaths_musicFile_Entry.bind('<Button-1>', lambda e:self.check_is_open_menu_view_inputs())
-        
+        self.options_Frame.bind(right_click_button, lambda e:(self.right_click_menu_popup(e, main_menu=True), self.options_Frame.focus()))
+        self.filePaths_musicFile_Entry.bind(right_click_button, lambda e:(self.input_right_click_menu(e), self.filePaths_musicFile_Entry.focus()))
+        self.filePaths_musicFile_Entry.bind('<Button-1>', lambda e:(self.check_is_open_menu_view_inputs(), self.filePaths_musicFile_Entry.focus()))
+
     #--Input/Export Methods--
     
     def input_select_filedialog(self):
@@ -1505,6 +1547,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                 if sys_mem >= int(17):
                     chunk_set = int(60) 
         elif chunks == '0':
+            chunk_set = 0
+        elif chunks == BATCH_MODE:
             chunk_set = 0
         else:
             chunk_set = int(chunks)
@@ -2466,10 +2510,10 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
 
         self.chunks_demucs_Label = self.menu_sub_LABEL_SET(demucs_frame, 'Chunks')
         self.chunks_demucs_Label.grid(row=7,column=0,padx=0,pady=5)
-        self.chunks_demucs_Option = ttk.Combobox(demucs_frame, value=CHUNKS, width=MENU_COMBOBOX_WIDTH, textvariable=self.chunks_demucs_var)
+        self.chunks_demucs_Option = ttk.Combobox(demucs_frame, value=CHUNKS_DEMUCS, width=MENU_COMBOBOX_WIDTH, textvariable=self.chunks_demucs_var)
         self.chunks_demucs_Option.grid(row=8,column=0,padx=0,pady=5)
-        self.combobox_entry_validation(self.chunks_demucs_Option, self.chunks_demucs_var, REG_CHUNKS, CHUNKS)
-        self.help_hints(self.chunks_demucs_Label, text=CHUNKS_HELP)
+        self.combobox_entry_validation(self.chunks_demucs_Option, self.chunks_demucs_var, REG_CHUNKS_DEMUCS, CHUNKS_DEMUCS)
+        self.help_hints(self.chunks_demucs_Label, text=CHUNKS_DEMUCS_HELP)
         
         self.margin_demucs_Label = self.menu_sub_LABEL_SET(demucs_frame, 'Chunk Margin')
         self.margin_demucs_Label.grid(row=9,column=0,padx=0,pady=5)
@@ -2557,33 +2601,40 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.combobox_entry_validation(margin_Option, self.margin_var, REG_MARGIN, MARGIN_SIZE)
             self.help_hints(margin_Label, text=MARGIN_HELP)
         
+        mdx_batch_size_Label = self.menu_sub_LABEL_SET(mdx_net_frame, 'Batch Size')
+        mdx_batch_size_Label.grid(row=5,column=0,padx=0,pady=5)
+        mdx_batch_size_Option = ttk.Combobox(mdx_net_frame, value=MDX_BATCH_SIZE, width=MENU_COMBOBOX_WIDTH, textvariable=self.mdx_batch_size_var)
+        mdx_batch_size_Option.grid(row=6,column=0,padx=0,pady=5)
+        self.combobox_entry_validation(mdx_batch_size_Option, self.mdx_batch_size_var, REG_SHIFTS, MDX_BATCH_SIZE)
+        self.help_hints(mdx_batch_size_Label, text=MDX_BATCH_SIZE_HELP)
+        
         compensate_Label = self.menu_sub_LABEL_SET(mdx_net_frame, 'Volume Compensation')
-        compensate_Label.grid(row=5,column=0,padx=0,pady=5)
+        compensate_Label.grid(row=7,column=0,padx=0,pady=5)
         compensate_Option = ttk.Combobox(mdx_net_frame, value=VOL_COMPENSATION, width=MENU_COMBOBOX_WIDTH, textvariable=self.compensate_var)
-        compensate_Option.grid(row=6,column=0,padx=0,pady=5)
+        compensate_Option.grid(row=8,column=0,padx=0,pady=5)
         self.combobox_entry_validation(compensate_Option, self.compensate_var, REG_COMPENSATION, VOL_COMPENSATION)
         self.help_hints(compensate_Label, text=COMPENSATE_HELP)
         
         is_denoise_Option = ttk.Checkbutton(mdx_net_frame, text='Denoise Output', width=MDX_CHECKBOXS_WIDTH, variable=self.is_denoise_var) 
-        is_denoise_Option.grid(row=8,column=0,padx=0,pady=0)
+        is_denoise_Option.grid(row=9,column=0,padx=0,pady=0)
         self.help_hints(is_denoise_Option, text=IS_DENOISE_HELP)
 
         is_invert_spec_Option = ttk.Checkbutton(mdx_net_frame, text='Spectral Inversion', width=MDX_CHECKBOXS_WIDTH, variable=self.is_invert_spec_var) 
-        is_invert_spec_Option.grid(row=9,column=0,padx=0,pady=0)
+        is_invert_spec_Option.grid(row=10,column=0,padx=0,pady=0)
         self.help_hints(is_invert_spec_Option, text=IS_INVERT_SPEC_HELP)
 
         clear_mdx_cache_Button = ttk.Button(mdx_net_frame, text='Clear Auto-Set Cache', command=lambda:self.clear_cache(MDX_ARCH_TYPE))
-        clear_mdx_cache_Button.grid(row=10,column=0,padx=0,pady=5)
+        clear_mdx_cache_Button.grid(row=11,column=0,padx=0,pady=5)
         self.help_hints(clear_mdx_cache_Button, text=CLEAR_CACHE_HELP)
         
         open_mdx_model_dir_Button = ttk.Button(mdx_net_frame, text='Open MDX-Net Models Folder', command=lambda:OPEN_FILE_func(MDX_MODELS_DIR))
-        open_mdx_model_dir_Button.grid(row=11,column=0,padx=0,pady=5)
+        open_mdx_model_dir_Button.grid(row=12,column=0,padx=0,pady=5)
         
         mdx_return_Button = ttk.Button(mdx_net_frame, text=BACK_TO_MAIN_MENU, command=lambda:(self.menu_advanced_mdx_options_close_window(), self.check_is_menu_settings_open()))
-        mdx_return_Button.grid(row=12,column=0,padx=0,pady=5)
+        mdx_return_Button.grid(row=13,column=0,padx=0,pady=5)
 
         mdx_close_Button = ttk.Button(mdx_net_frame, text='Close Window', command=lambda:self.menu_advanced_mdx_options_close_window())
-        mdx_close_Button.grid(row=13,column=0,padx=0,pady=5)
+        mdx_close_Button.grid(row=14,column=0,padx=0,pady=5)
         
         self.menu_placement(mdx_net_opt, "Advanced MDX-Net Options", is_help_hints=True, close_function=self.menu_advanced_mdx_options_close_window)
 
@@ -3474,7 +3525,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
 
                 if user_refresh:
                     self.download_list_state()
-                    self.download_list_fill()
+                    #self.download_list_fill()
                     for widget in self.download_center_Buttons:widget.configure(state=tk.NORMAL)
                     
                 if refresh_list_Button:
@@ -3491,8 +3542,15 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                     self.app_update_status_Text_var.set('UVR Version Current')
                 else:
                     is_new_update = True
-                    self.app_update_status_Text_var.set(f"Update Found: {self.lastest_version}")
-                    self.app_update_button_Text_var.set('Click Here to Update')
+                    is_beta_version = True if self.lastest_version == PREVIOUS_PATCH_WIN and BETA_VERSION in current_patch else False
+                    
+                    if is_beta_version:
+                        self.app_update_status_Text_var.set(f"Roll Back: {self.lastest_version}")
+                        self.app_update_button_Text_var.set('Click Here to Roll Back')
+                    else:
+                        self.app_update_status_Text_var.set(f"Update Found: {self.lastest_version}")
+                        self.app_update_button_Text_var.set('Click Here to Update')
+                        
                     if OPERATING_SYSTEM == "Windows":
                         self.download_update_link_var.set('{}{}{}'.format(UPDATE_REPO, self.lastest_version, application_extension))
                         self.download_update_path_var.set(os.path.join(BASE_PATH, f'{self.lastest_version}{application_extension}'))
@@ -3502,7 +3560,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                         self.download_update_link_var.set(UPDATE_LINUX_REPO)
                     
                     if not user_refresh:
-                        self.command_Text.write(f"\n\nNew Update Found: {self.lastest_version}\n\nClick the update button in the \"Settings\" menu to download and install!")
+                        if not is_beta_version:
+                            self.command_Text.write(f"\n\nNew Update Found: {self.lastest_version}\n\nClick the update button in the \"Settings\" menu to download and install!")
 
                 self.download_model_settings()
 
@@ -3602,6 +3661,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         
         self.vr_hash_MAPPER = json.load(urllib.request.urlopen(VR_MODEL_DATA_LINK))
         self.mdx_hash_MAPPER = json.load(urllib.request.urlopen(MDX_MODEL_DATA_LINK))
+        self.mdx_name_select_MAPPER = json.load(urllib.request.urlopen(MDX_MODEL_NAME_DATA_LINK))
+        self.demucs_name_select_MAPPER = json.load(urllib.request.urlopen(DEMUCS_MODEL_NAME_DATA_LINK))
         
         try:
             vr_hash_MAPPER_dump = json.dumps(self.vr_hash_MAPPER, indent=4)
@@ -3611,7 +3672,20 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             mdx_hash_MAPPER_dump = json.dumps(self.mdx_hash_MAPPER, indent=4)
             with open(MDX_HASH_JSON, "w") as outfile:
                 outfile.write(mdx_hash_MAPPER_dump)
+
+            mdx_name_select_MAPPER_dump = json.dumps(self.mdx_name_select_MAPPER, indent=4)
+            with open(MDX_MODEL_NAME_SELECT, "w") as outfile:
+                outfile.write(mdx_name_select_MAPPER_dump)
+                
+            demucs_name_select_MAPPER_dump = json.dumps(self.demucs_name_select_MAPPER, indent=4)
+            with open(DEMUCS_MODEL_NAME_SELECT, "w") as outfile:
+                outfile.write(demucs_name_select_MAPPER_dump)
+
         except Exception as e:
+            # self.vr_hash_MAPPER = load_model_hash_data(VR_HASH_JSON)
+            # self.mdx_hash_MAPPER = load_model_hash_data(MDX_HASH_JSON)
+            # self.mdx_name_select_MAPPER = load_model_hash_data(MDX_MODEL_NAME_SELECT)
+            # self.demucs_name_select_MAPPER = load_model_hash_data(DEMUCS_MODEL_NAME_SELECT)
             self.error_log_var.set(e)
             print(e)
 
@@ -3850,8 +3924,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.model_data_table = []
             
             vr_model_list = loop_directories(self.vr_model_Option, self.vr_model_var, new_vr_models, VR_ARCH_TYPE, name_mapper=None)
-            mdx_model_list = loop_directories(self.mdx_net_model_Option, self.mdx_net_model_var, new_mdx_models, MDX_ARCH_TYPE, name_mapper=MDX_NAME_SELECT)
-            demucs_model_list = loop_directories(self.demucs_model_Option, self.demucs_model_var, new_demucs_models, DEMUCS_ARCH_TYPE, name_mapper=DEMUCS_NAME_SELECT)
+            mdx_model_list = loop_directories(self.mdx_net_model_Option, self.mdx_net_model_var, new_mdx_models, MDX_ARCH_TYPE, name_mapper=self.mdx_name_select_MAPPER)
+            demucs_model_list = loop_directories(self.demucs_model_Option, self.demucs_model_var, new_demucs_models, DEMUCS_ARCH_TYPE, name_mapper=self.demucs_name_select_MAPPER)
             
             self.ensemble_model_list = vr_model_list + mdx_model_list + demucs_model_list
             self.last_found_models = new_models_found
@@ -4276,9 +4350,9 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.active_processing_thread.start()
 
     def process_button_init(self):
-        self.command_Text.clear()
         self.conversion_Button_Text_var.set(WAIT_PROCESSING)
         self.conversion_Button.configure(state=tk.DISABLED)
+        self.command_Text.clear()
 
     def process_get_baseText(self, total_files, file_num):
         """Create the base text for the command widget"""
@@ -4564,7 +4638,8 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                     audio_file_base = f"{file_num}_{os.path.splitext(os.path.basename(audio_file))[0]}"
                     audio_file_base = audio_file_base if not self.is_testing_audio_var.get() or is_ensemble else f"{round(time.time())}_{audio_file_base}"
                     audio_file_base = audio_file_base if not is_ensemble else f"{audio_file_base}_{current_model.model_basename}"
-                    audio_file_base = audio_file_base if not self.is_add_model_name_var.get() else f"{audio_file_base}_{current_model.model_basename}"
+                    if not is_ensemble:
+                        audio_file_base = audio_file_base if not self.is_add_model_name_var.get() else f"{audio_file_base}_{current_model.model_basename}"
 
                     if self.is_create_model_folder_var.get() and not is_ensemble:
                         export_path = os.path.join(Path(self.export_path_var.get()), current_model.model_basename, os.path.splitext(os.path.basename(audio_file))[0])
@@ -4583,12 +4658,14 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
                                     'list_all_models': self.all_models,
                                     'is_ensemble_master': is_ensemble,
                                     'is_4_stem_ensemble': True if self.ensemble_main_stem_var.get() == FOUR_STEM_ENSEMBLE and is_ensemble else False}
+                    
                     if current_model.process_method == VR_ARCH_TYPE:
                         seperator = SeperateVR(current_model, process_data)
                     if current_model.process_method == MDX_ARCH_TYPE:
                         seperator = SeperateMDX(current_model, process_data)
                     if current_model.process_method == DEMUCS_ARCH_TYPE:
                         seperator = SeperateDemucs(current_model, process_data)
+                        
                     seperator.seperate()
                     
                     if is_ensemble:
@@ -4658,6 +4735,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         for key, value in DEFAULT_DATA.items():
             if not key in data.keys():
                 data = {**data, **{key:value}}
+                data['chunks'] = BATCH_MODE if key == 'mdx_batch_size' else data['chunks']
         
         ## ADD_BUTTON
         self.chosen_process_method_var = tk.StringVar(value=data['chosen_process_method'])
@@ -4715,6 +4793,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
         self.compensate_var = tk.StringVar(value=data['compensate'])
         self.is_denoise_var = tk.BooleanVar(value=data['is_denoise'])
         self.is_invert_spec_var = tk.BooleanVar(value=data['is_invert_spec'])
+        self.mdx_batch_size_var = tk.StringVar(value=data['mdx_batch_size'])
         self.mdx_voc_inst_secondary_model_var = tk.StringVar(value=data['mdx_voc_inst_secondary_model'])
         self.mdx_other_secondary_model_var = tk.StringVar(value=data['mdx_other_secondary_model'])
         self.mdx_bass_secondary_model_var = tk.StringVar(value=data['mdx_bass_secondary_model'])
@@ -4766,7 +4845,9 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             if not key in loaded_setting.keys():
                 loaded_setting = {**loaded_setting, **{key:value}}
         
-        if not process_method or process_method == VR_ARCH_PM:
+        is_ensemble = True if process_method == ENSEMBLE_MODE else False
+        
+        if not process_method or process_method == VR_ARCH_PM or is_ensemble:
             self.vr_model_var.set(loaded_setting['vr_model'])
             self.aggression_setting_var.set(loaded_setting['aggression_setting'])
             self.window_size_var.set(loaded_setting['window_size'])
@@ -4787,7 +4868,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.vr_bass_secondary_model_scale_var.set(loaded_setting['vr_bass_secondary_model_scale'])
             self.vr_drums_secondary_model_scale_var.set(loaded_setting['vr_drums_secondary_model_scale'])
         
-        if not process_method or process_method == DEMUCS_ARCH_TYPE:
+        if not process_method or process_method == DEMUCS_ARCH_TYPE or is_ensemble:
             self.demucs_model_var.set(loaded_setting['demucs_model'])
             self.segment_var.set(loaded_setting['segment'])
             self.overlap_var.set(loaded_setting['overlap'])
@@ -4814,13 +4895,14 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.is_demucs_pre_proc_model_activate_var.set(data['is_demucs_pre_proc_model_activate'])
             self.is_demucs_pre_proc_model_inst_mix_var.set(data['is_demucs_pre_proc_model_inst_mix'])
         
-        if not process_method or process_method == MDX_ARCH_TYPE:
+        if not process_method or process_method == MDX_ARCH_TYPE or is_ensemble:
             self.mdx_net_model_var.set(loaded_setting['mdx_net_model'])
             self.chunks_var.set(loaded_setting['chunks'])
             self.margin_var.set(loaded_setting['margin'])
             self.compensate_var.set(loaded_setting['compensate'])
             self.is_denoise_var.set(loaded_setting['is_denoise'])
             self.is_invert_spec_var.set(loaded_setting['is_invert_spec'])
+            self.mdx_batch_size_var.set(loaded_setting['mdx_batch_size'])
             self.mdx_voc_inst_secondary_model_var.set(loaded_setting['mdx_voc_inst_secondary_model'])
             self.mdx_other_secondary_model_var.set(loaded_setting['mdx_other_secondary_model'])
             self.mdx_bass_secondary_model_var.set(loaded_setting['mdx_bass_secondary_model'])
@@ -4831,7 +4913,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             self.mdx_bass_secondary_model_scale_var.set(loaded_setting['mdx_bass_secondary_model_scale'])
             self.mdx_drums_secondary_model_scale_var.set(loaded_setting['mdx_drums_secondary_model_scale'])
         
-        if not process_method:
+        if not process_method or is_ensemble:
             self.is_save_all_outputs_ensemble_var.set(loaded_setting['is_save_all_outputs_ensemble'])
             self.is_append_ensemble_name_var.set(loaded_setting['is_append_ensemble_name'])
             self.chosen_audio_tool_var.set(loaded_setting['chosen_audio_tool'])
@@ -4911,6 +4993,7 @@ class MainWindow(TkinterDnD.Tk if is_dnd_compatible else tk.Tk):
             'compensate': self.compensate_var.get(),
             'is_denoise': self.is_denoise_var.get(),
             'is_invert_spec': self.is_invert_spec_var.get(), 
+            'mdx_batch_size':self.mdx_batch_size_var.get(),
             'mdx_voc_inst_secondary_model': self.mdx_voc_inst_secondary_model_var.get(),
             'mdx_other_secondary_model': self.mdx_other_secondary_model_var.get(),
             'mdx_bass_secondary_model': self.mdx_bass_secondary_model_var.get(),

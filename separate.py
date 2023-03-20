@@ -96,6 +96,8 @@ class SeperateAttributes:
         if model_data.process_method == MDX_ARCH_TYPE:
             self.primary_model_name, self.primary_sources = self.cached_source_callback(MDX_ARCH_TYPE, model_name=self.model_basename)
             self.is_denoise = model_data.is_denoise
+            self.is_mdx_batch_mode = model_data.is_mdx_batch_mode
+            self.mdx_batch_size = model_data.mdx_batch_size
             self.compensate = model_data.compensate
             self.dim_f, self.dim_t = model_data.mdx_dim_f_set, 2**model_data.mdx_dim_t_set
             self.n_fft = model_data.mdx_n_fft_scale_set
@@ -227,7 +229,7 @@ class SeperateMDX(SeperateAttributes):
     def seperate(self):
 
         samplerate = 44100
-                
+                 
         if self.primary_model_name == self.model_basename and self.primary_sources:
             self.primary_source, self.secondary_source = self.load_cached_sources()
         else:
@@ -246,7 +248,7 @@ class SeperateMDX(SeperateAttributes):
             mdx_net_cut = True if self.primary_stem in MDX_NET_FREQ_CUT else False
             mix, raw_mix, samplerate = prepare_mix(self.audio_file, self.chunks, self.margin, mdx_net_cut=mdx_net_cut)
             
-            source = self.demix_base(mix)
+            source = self.demix_base_batch(mix[0]) if self.is_mdx_batch_mode else self.demix_base(mix)[0]
             self.write_to_console(DONE, base_text='')            
 
         if self.is_secondary_model_activated:
@@ -257,7 +259,7 @@ class SeperateMDX(SeperateAttributes):
             self.write_to_console(f'{SAVING_STEM[0]}{self.primary_stem}{SAVING_STEM[1]}') if not self.is_secondary_model else None
             primary_stem_path = os.path.join(self.export_path, f'{self.audio_file_base}_({self.primary_stem}).wav')
             if not isinstance(self.primary_source, np.ndarray):
-                self.primary_source = spec_utils.normalize(source[0], self.is_normalization).T
+                self.primary_source = spec_utils.normalize(source, self.is_normalization).T
             self.primary_source_map = {self.primary_stem: self.primary_source}
             self.write_audio(primary_stem_path, self.primary_source, samplerate, self.secondary_source_primary)
 
@@ -266,7 +268,7 @@ class SeperateMDX(SeperateAttributes):
             secondary_stem_path = os.path.join(self.export_path, f'{self.audio_file_base}_({self.secondary_stem}).wav')
             if not isinstance(self.secondary_source, np.ndarray):
                 raw_mix = self.demix_base(raw_mix, is_match_mix=True)[0] if mdx_net_cut else raw_mix
-                self.secondary_source, raw_mix = spec_utils.normalize_two_stem(source[0]*self.compensate, raw_mix, self.is_normalization)
+                self.secondary_source, raw_mix = spec_utils.normalize_two_stem(source*self.compensate, raw_mix, self.is_normalization)
             
                 if self.is_invert_spec:
                     self.secondary_source = spec_utils.invert_stem(raw_mix, self.secondary_source)
@@ -284,6 +286,45 @@ class SeperateMDX(SeperateAttributes):
 
         if self.is_secondary_model:
             return secondary_sources
+
+    def demix_base_batch(self, mix):
+        
+        mix_waves = []
+        tar_signals = []
+        
+        n_sample = mix.shape[1]
+        trim = self.n_fft//2
+        gen_size = self.chunk_size-2*trim
+        pad = gen_size - n_sample%gen_size
+        mix_p = np.concatenate((np.zeros((2,trim)), mix, np.zeros((2,pad)), np.zeros((2,trim))), 1)
+        i = 0
+        
+        while i < n_sample + pad:
+            waves = np.array(mix_p[:, i:i+self.chunk_size])
+            mix_waves.append(waves)
+            i += gen_size
+        mix_waves_batched = torch.tensor(mix_waves, dtype=torch.float32).split(self.mdx_batch_size)
+        with torch.no_grad():
+            _ort = self.onnx_model
+            adjust = 1
+            for mix_wave in mix_waves_batched:
+                self.progress_value += 1
+                self.set_progress_bar(0.1, (0.8/len(mix_waves_batched)*self.progress_value))
+                spek = self.stft(mix_wave)*adjust
+                spek[:, :, :3, :] *= 0 
+                
+                if self.is_denoise:
+                    spec_pred = -_ort.run(None, {'input': -spek.numpy()})[0]*0.5+_ort.run(None, {'input': spek.numpy()})[0]*0.5
+                else:
+                    spec_pred = _ort.run(None, {'input': spek.numpy()})[0]
+
+                tar_waves = self.istft(torch.tensor(spec_pred))
+                tar_signals.append(tar_waves[:, :, trim:-trim].transpose(0, 1).reshape(2, -1).numpy())
+            source = np.concatenate(tar_signals, axis=-1)[:, :-pad]
+
+        del self.onnx_model
+
+        return source
 
     def demix_base(self, mix, is_match_mix=False):
         chunked_sources = []
@@ -309,6 +350,7 @@ class SeperateMDX(SeperateAttributes):
                 _ort = self.onnx_model if not is_match_mix else None
                 adjust = 1
                 spek = self.stft(mix_waves)*adjust
+                spek[:, :, :3, :] *= 0 
                 
                 if not is_match_mix:
                     if self.is_denoise:
@@ -882,6 +924,11 @@ def prepare_mix(mix, chunk_set, margin_set, mdx_net_cut=False, is_missing_mix=Fa
     if mix.ndim == 1:
         mix = np.asfortranarray([mix,mix])
 
+    try:
+        print(f'{os.path.basename(audio_path)} Input Shape: ', mix.shape)
+    except:
+        print('Missing Shape')
+
     def get_segmented_mix(chunk_set=chunk_set):
         segmented_mix = {}
         
@@ -911,6 +958,8 @@ def prepare_mix(mix, chunk_set, margin_set, mdx_net_cut=False, is_missing_mix=Fa
     else:
         segmented_mix = get_segmented_mix()
         raw_mix = get_segmented_mix(chunk_set=0) if mdx_net_cut else mix
+        # segmented_mix = mix
+        # raw_mix = mix
         return segmented_mix, raw_mix, samplerate
 
 def rerun_mp3(audio_file, sample_rate=44100):
