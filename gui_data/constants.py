@@ -67,6 +67,10 @@ AUTO_SELECT = 'Auto'
 DOWNLOAD_CHECKS = "https://raw.githubusercontent.com/TRvlvr/application_data/main/filelists/download_checks.json"
 MDX_MODEL_DATA_LINK = "https://raw.githubusercontent.com/TRvlvr/application_data/main/mdx_model_data/model_data.json"
 VR_MODEL_DATA_LINK = "https://raw.githubusercontent.com/TRvlvr/application_data/main/vr_model_data/model_data.json"
+
+DEMUCS_MODEL_NAME_DATA_LINK = "https://raw.githubusercontent.com/TRvlvr/application_data/main/demucs_model_data/model_name_mapper.json"
+MDX_MODEL_NAME_DATA_LINK = "https://raw.githubusercontent.com/TRvlvr/application_data/main/mdx_model_data/model_name_mapper.json"
+
 DONATE_LINK_BMAC = "https://www.buymeacoffee.com/uvr5"
 DONATE_LINK_PATREON = "https://www.patreon.com/uvr"
 
@@ -124,6 +128,7 @@ SYNTH_STEM = 'Synthesizer'
 STRINGS_STEM = 'Strings'
 WOODWINDS_STEM = 'Woodwinds'
 BRASS_STEM = 'Brass'
+WIND_INST_STEM = 'Wind Inst'
 NO_OTHER_STEM = 'No Other'
 NO_BASS_STEM = 'No Bass'
 NO_DRUM_STEM = 'No Drums'
@@ -132,6 +137,7 @@ NO_PIANO_STEM = 'No Piano'
 NO_SYNTH_STEM = 'No Synthesizer'
 NO_STRINGS_STEM = 'No Strings'
 NO_WOODWINDS_STEM = 'No Woodwinds'
+NO_WIND_INST_STEM = 'No Wind Inst'
 NO_BRASS_STEM = 'No Brass'
 PRIMARY_STEM = 'Primary Stem'
 SECONDARY_STEM = 'Secondary Stem'
@@ -176,6 +182,7 @@ STEM_SET_MENU = (VOCAL_STEM,
                  STRINGS_STEM, 
                  WOODWINDS_STEM, 
                  BRASS_STEM,
+                 WIND_INST_STEM,
                  NO_OTHER_STEM, 
                  NO_BASS_STEM, 
                  NO_DRUM_STEM, 
@@ -184,7 +191,8 @@ STEM_SET_MENU = (VOCAL_STEM,
                  NO_SYNTH_STEM, 
                  NO_STRINGS_STEM, 
                  NO_WOODWINDS_STEM,
-                 NO_BRASS_STEM)
+                 NO_BRASS_STEM,
+                 NO_WIND_INST_STEM)
 
 STEM_PAIR_MAPPER = {
             VOCAL_STEM: INST_STEM,
@@ -198,6 +206,7 @@ STEM_PAIR_MAPPER = {
             STRINGS_STEM: NO_STRINGS_STEM,
             WOODWINDS_STEM: NO_WOODWINDS_STEM,
             BRASS_STEM: NO_BRASS_STEM,
+            WIND_INST_STEM: NO_WIND_INST_STEM,
             NO_OTHER_STEM: OTHER_STEM,
             NO_BASS_STEM: BASS_STEM,
             NO_DRUM_STEM: DRUM_STEM,
@@ -207,6 +216,7 @@ STEM_PAIR_MAPPER = {
             NO_STRINGS_STEM: STRINGS_STEM,
             NO_WOODWINDS_STEM: WOODWINDS_STEM,
             NO_BRASS_STEM: BRASS_STEM,
+            NO_WIND_INST_STEM: WIND_INST_STEM,
             PRIMARY_STEM: SECONDARY_STEM}
 
 MDX_NET_FREQ_CUT = [VOCAL_STEM, INST_STEM]
@@ -244,10 +254,21 @@ AVE_AVE = f'{AUDIO_AVERAGE}/{AUDIO_AVERAGE}'
 ENSEMBLE_TYPE = (MAX_MIN, MAX_MAX, MAX_AVE, MIN_MAX, MIN_MIX, MIN_AVE, AVE_MAX, AVE_MIN, AVE_AVE)
 ENSEMBLE_TYPE_4_STEM = (MAX_SPEC, MIN_SPEC, AUDIO_AVERAGE)
 
-CHUNKS = (AUTO_SELECT, '1', '5', '10', '15', '20', 
+BATCH_MODE = 'Batch Mode'
+BETA_VERSION = 'BETA'
+
+CHUNKS = (BATCH_MODE, AUTO_SELECT, '1', '5', '10', '15', '20', 
           '25', '30', '35', '40', '45', '50', 
           '55', '60', '65', '70', '75', '80', 
           '85', '90', '95', 'Full')
+
+CHUNKS_DEMUCS = (AUTO_SELECT, '1', '5', '10', '15', '20', 
+          '25', '30', '35', '40', '45', '50', 
+          '55', '60', '65', '70', '75', '80', 
+          '85', '90', '95', 'Full')
+
+MDX_BATCH_SIZE = ('1', '2', '3', '4', '5', 
+          '6', '7', '8', '9', '10')
 
 VOL_COMPENSATION = (AUTO_SELECT, '1.035', '1.08')
 
@@ -357,7 +378,8 @@ REG_PITCH = r'^[-+]?(1[0]|[0-9]([.][0-9]*)?)$'
 REG_TIME = r'^[+]?(1[0]|[0-9]([.][0-9]*)?)$'
 REG_COMPENSATION = r'\b^(1[0]|[0-9]([.][0-9]*)?|Auto|None)$\b'
 REG_THES_POSTPORCESS = r'\b^([0]([.][0-9]{0,6})?)$\b'
-REG_CHUNKS = r'\b^(200|1[0-9][0-9]|[1-9][0-9]?|Auto|Full)$\b'
+REG_CHUNKS = r'\b^(200|1[0-9][0-9]|[1-9][0-9]?|Auto|Full|Batch Mode)$\b'
+REG_CHUNKS_DEMUCS = r'\b^(200|1[0-9][0-9]|[1-9][0-9]?|Auto|Full)$\b'
 REG_MARGIN = r'\b^[0-9]*$\b'
 REG_SEGMENTS = r'\b^(200|1[0-9][0-9]|[1-9][0-9]?|Default)$\b'
 REG_SAVE_INPUT = r'\b^([a-zA-Z0-9 -]{0,25})$\b'
@@ -375,50 +397,51 @@ ALL_ARCH_SETTING_LOAD = 'Load for Full Application'
 
 # Mappers
 
-MDX_NAME_SELECT = {
-                "UVR_MDXNET_1_9703": 'UVR-MDX-NET 1',
-                "UVR_MDXNET_2_9682": 'UVR-MDX-NET 2',
-                "UVR_MDXNET_3_9662": 'UVR-MDX-NET 3',
-                "UVR_MDXNET_KARA": 'UVR-MDX-NET Karaoke',
-                "UVR_MDXNET_Main": 'UVR-MDX-NET Main',
-                "UVR-MDX-NET-Inst_1": 'UVR-MDX-NET Inst 1',
-                "UVR-MDX-NET-Inst_2": 'UVR-MDX-NET Inst 2',
-                "UVR-MDX-NET-Inst_3": 'UVR-MDX-NET Inst 3',
-                "UVR-MDX-NET-Inst_Main": 'UVR-MDX-NET Inst Main'}
+# MDX_NAME_SELECT = {
+#                 "UVR_MDXNET_1_9703": 'UVR-MDX-NET 1',
+#                 "UVR_MDXNET_2_9682": 'UVR-MDX-NET 2',
+#                 "UVR_MDXNET_3_9662": 'UVR-MDX-NET 3',
+#                 "UVR_MDXNET_KARA": 'UVR-MDX-NET Karaoke',
+#                 "UVR_MDXNET_Main": 'UVR-MDX-NET Main',
+#                 "UVR-MDX-NET-Inst_1": 'UVR-MDX-NET Inst 1',
+#                 "UVR-MDX-NET-Inst_2": 'UVR-MDX-NET Inst 2',
+#                 "UVR-MDX-NET-Inst_3": 'UVR-MDX-NET Inst 3',
+#                 "UVR-MDX-NET-Inst_Main": 'UVR-MDX-NET Inst Main'}
 
-DEMUCS_NAME_SELECT = {
-                'tasnet.th': 'v1 | Tasnet',
-                'tasnet_extra.th': 'v1 | Tasnet_extra',
-                'demucs.th': 'v1 | Demucs_base',
-                'demucs_extra.th': 'v1 | Demucs_extra',
-                'light.th': 'v1 | Light',
-                'light_extra.th': 'v1 | Light_extra',
-                'tasnet.th.gz': 'v1 | Tasnet.gz',
-                'tasnet_extra.th.gz': 'v1 | Tasnet_extra.gz',
-                'demucs.th.gz': 'v1 | Demucs_extra.gz',
-                'light.th.gz': 'v1 | Light.gz',
-                'light_extra.th.gz': "v1 | Light_extra.gz'",
-                'tasnet-beb46fac.th': 'v2 | Tasnet',
-                'tasnet_extra-df3777b2.th': 'v2 | Tasnet_extra',
-                'demucs48_hq-28a1282c.th': 'v2 | Demucs48_hq',
-                'demucs-e07c671f.th': 'v2 | Demucs_base',
-                'demucs_extra-3646af93.th': 'v2 | Demucs_extra',
-                'demucs_unittest-09ebc15f.th': 'v2 | Demucs_unittest',
-                'mdx.yaml': 'v3 | mdx',
-                'mdx_extra.yaml': 'v3 | mdx_extra',
-                'mdx_extra_q.yaml': 'v3 | mdx_extra_q',
-                'mdx_q.yaml': 'v3 | mdx_q',
-                'repro_mdx_a.yaml': 'v3 | repro_mdx_a',
-                'repro_mdx_a_hybrid_only.yaml': 'v3 | repro_mdx_a_hybrid',
-                'repro_mdx_a_time_only.yaml': 'v3 | repro_mdx_a_time',
-                'UVR_Demucs_Model_1.yaml': 'v3 | UVR_Model_1',
-                'UVR_Demucs_Model_2.yaml': 'v3 | UVR_Model_2',
-                'UVR_Demucs_Model_Bag.yaml': 'v3 | UVR_Model_Bag',
-                'hdemucs_mmi.yaml': 'v4 | hdemucs_mmi',
-                'htdemucs.yaml': 'v4 | htdemucs',
-                'htdemucs_ft.yaml': 'v4 | htdemucs_ft',
-                'htdemucs_6s.yaml': 'v4 | htdemucs_6s'
-                }
+# DEMUCS_NAME_SELECT = {
+#                 'tasnet.th': 'v1 | Tasnet',
+#                 'tasnet_extra.th': 'v1 | Tasnet_extra',
+#                 'demucs.th': 'v1 | Demucs_base',
+#                 'demucs_extra.th': 'v1 | Demucs_extra',
+#                 'light.th': 'v1 | Light',
+#                 'light_extra.th': 'v1 | Light_extra',
+#                 'tasnet.th.gz': 'v1 | Tasnet.gz',
+#                 'tasnet_extra.th.gz': 'v1 | Tasnet_extra.gz',
+#                 'demucs.th.gz': 'v1 | Demucs_extra.gz',
+#                 'light.th.gz': 'v1 | Light.gz',
+#                 'light_extra.th.gz': "v1 | Light_extra.gz'",
+#                 'tasnet-beb46fac.th': 'v2 | Tasnet',
+#                 'tasnet_extra-df3777b2.th': 'v2 | Tasnet_extra',
+#                 'demucs48_hq-28a1282c.th': 'v2 | Demucs48_hq',
+#                 'demucs-e07c671f.th': 'v2 | Demucs_base',
+#                 'demucs_extra-3646af93.th': 'v2 | Demucs_extra',
+#                 'demucs_unittest-09ebc15f.th': 'v2 | Demucs_unittest',
+#                 'mdx.yaml': 'v3 | mdx',
+#                 'mdx_extra.yaml': 'v3 | mdx_extra',
+#                 'mdx_extra_q.yaml': 'v3 | mdx_extra_q',
+#                 'mdx_q.yaml': 'v3 | mdx_q',
+#                 'repro_mdx_a.yaml': 'v3 | repro_mdx_a',
+#                 'repro_mdx_a_hybrid_only.yaml': 'v3 | repro_mdx_a_hybrid',
+#                 'repro_mdx_a_time_only.yaml': 'v3 | repro_mdx_a_time',
+#                 'UVR_Demucs_Model_1.yaml': 'v3 | UVR_Model_1',
+#                 'UVR_Demucs_Model_2.yaml': 'v3 | UVR_Model_2',
+#                 'UVR_Demucs_Model_Bag.yaml': 'v3 | UVR_Model_Bag',
+#                 'UVR_Demucs_Model_ht.yaml': 'v4 | UVR_Model_ht',
+#                 'hdemucs_mmi.yaml': 'v4 | hdemucs_mmi',
+#                 'htdemucs.yaml': 'v4 | htdemucs',
+#                 'htdemucs_ft.yaml': 'v4 | htdemucs_ft',
+#                 'htdemucs_6s.yaml': 'v4 | htdemucs_6s'
+#                 }
 
 DEFAULT_DATA = {
     
@@ -473,6 +496,7 @@ DEFAULT_DATA = {
         'compensate': AUTO_SELECT,
         'is_denoise': False,
         'is_invert_spec': False, 
+        'mdx_batch_size': 1,
         'mdx_voc_inst_secondary_model': NO_MODEL,
         'mdx_other_secondary_model': NO_MODEL,
         'mdx_bass_secondary_model': NO_MODEL,
@@ -557,6 +581,7 @@ SETTING_CHECK = ('vr_model',
                'compensate',
                'is_denoise',
                'is_invert_spec',
+               'mdx_batch_size',
                'mdx_voc_inst_secondary_model',
                'mdx_other_secondary_model',
                'mdx_bass_secondary_model',
@@ -610,11 +635,18 @@ SETTINGS_HELP = 'Opens the main settings guide. This window includes the \"Downl
 COMMAND_TEXT_HELP = 'Provides information on the progress of the current process.'
 SAVE_CURRENT_SETTINGS_HELP = 'Allows the user to open any saved settings or save the current application settings.'
 CHUNKS_HELP = ('This option allows the user to reduce (or increase) RAM or V-RAM usage.\n\n' + \
+                '• Selecting \"Batch Mode\" (best option) will split the input using Torch. Batch size can be specified in the MDX-Net options menu.\n' + \
+                '• Smaller chunk/batch sizes use less RAM or V-RAM but can also increase processing times.\n' + \
+                '• Larger chunk/batch sizes use more RAM or V-RAM but can also reduce processing times.\n' + \
+                '• Selecting \"Auto\" calculates an appropriate chuck size based on how much RAM or V-RAM your system has.\n' + \
+                '• Selecting \"Full\" will process the track as one whole chunk. (not recommended)\n' + \
+                '• The default selection is \"Batch Mode\".' +\
+                '• Selecting \"Batch Mode\" provides the best output quality, regardless of batch size.\n')
+CHUNKS_DEMUCS_HELP = ('This option allows the user to reduce (or increase) RAM or V-RAM usage.\n\n' + \
                 '• Smaller chunk sizes use less RAM or V-RAM but can also increase processing times.\n' + \
                 '• Larger chunk sizes use more RAM or V-RAM but can also reduce processing times.\n' + \
                 '• Selecting \"Auto\" calculates an appropriate chuck size based on how much RAM or V-RAM your system has.\n' + \
-                '• Selecting \"Full\" will process the track as one whole chunk.\n' + \
-                '• This option is only recommended for those with powerful PCs.\n' +\
+                '• Selecting \"Full\" will process the track as one whole chunk. (not recommended)\n' + \
                 '• The default selection is \"Auto\".')
 MARGIN_HELP = 'Selects the frequency margins to slice the chunks from.\n\n• The recommended margin size is 44100.\n• Other values can give unpredictable results.'
 AGGRESSION_SETTING_HELP = ('This option allows you to set how strong the primary stem extraction will be.\n\n' + \
@@ -740,7 +772,12 @@ MODEL_SAMPLE_MODE_HELP = 'Allows the user to process only part of a track to sam
 POST_PROCESS_THREASHOLD_HELP = 'Allows the user to control the intensity of the Post_process option.\n\nNotes:\n\n' +\
                                '• Higher values potentially remove more artifacts. However, bleed might increase.\n' +\
                                '• Lower values limit artifact removal.'
-                         
+
+MDX_BATCH_SIZE_HELP = 'Specify the number of batches to be processed at a time when \"Batch Mode\" is selected\n\nNotes:\n\n' +\
+                               '• Higher values mean more RAM usage but slightly faster processing times.\n' +\
+                               '• Lower values mean less RAM usage but slightly longer processing times.\n' +\
+                               '• Batch size value has no effect on output quality.'
+               
 # Warning Messages
 
 STORAGE_ERROR = 'Insufficient Storage', 'There is not enough storage on main drive to continue. Your main drive must have at least 3 GB\'s of storage in order for this application function properly. \n\nPlease ensure your main drive has at least 3 GB\'s of storage and try again.\n\n'
@@ -797,7 +834,8 @@ OPTION_HEIGHT = 7
 LOW_MENU_Y = 18, 16
 FFMPEG_EXT = (".aac", ".aiff", ".alac" ,".flac", ".FLAC", ".mov", ".mp4", ".MP4", 
               ".m4a", ".M4A", ".mp2", ".mp3", "MP3", ".mpc", ".mpc8", 
-              ".mpeg", ".ogg", ".OGG", ".tta", ".wav", ".wave", ".WAV", ".WAVE", ".wma", ".webm")
+              ".mpeg", ".ogg", ".OGG", ".tta", ".wav", ".wave", ".WAV", ".WAVE", ".wma", ".webm", ".eac3", ".mkv")
+
 FFMPEG_MORE_EXT = (".aa", ".aac", ".ac3", ".aiff", ".alac", ".avi", ".f4v",".flac", ".flic", ".flv",
               ".m4v",".mlv", ".mov", ".mp4", ".m4a", ".mp2", ".mp3", ".mp4", ".mpc", ".mpc8", 
               ".mpeg", ".ogg", ".tta", ".tty", ".vcd", ".wav", ".wma")
