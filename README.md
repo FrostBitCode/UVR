@@ -1,289 +1,290 @@
-# Ultimate Vocal Remover GUI v5.5.1
+#Ultimate Vocal Remover GUI v5.5.1
 <img src="https://raw.githubusercontent.com/Anjok07/ultimatevocalremovergui/master/gui_data/img/UVR_5_5_1.png?raw=true" />
 
-[![Release](https://img.shields.io/github/release/anjok07/ultimatevocalremovergui.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/anjok07/ultimatevocalremovergui/total.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases)
+[![Lanzamiento](https://img.shields.io/github/release/anjok07/ultimatevocalremovergui.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases/latest)
+[![Descargas](https://img.shields.io/github/downloads/anjok07/ultimatevocalremovergui/total.svg)](https://github.com/anjok07/ultimatevocalremovergui/releases)
 
-## About
+## Acerca de
 
-This application uses state-of-the-art source separation models to remove vocals from audio files. UVR's core developers trained all of the models provided in this package (except for the Demucs v3 and v4 4-stem models).
+Esta aplicación utiliza modelos de separación de fuentes de última generación para eliminar las voces de los archivos de audio. Los desarrolladores principales de UVR entrenaron todos los modelos provistos en este paquete (excepto los modelos de 4 vástagos Demucs v3 y v4).
 
-- **Core Developers**
-    - [Anjok07](https://github.com/anjok07)
-    - [aufr33](https://github.com/aufr33)
+- **Desarrolladores principales**
+     - [Anjok07](https://github.com/anjok07)
+     - [aufr33](https://github.com/aufr33)
 
-- **Support the Project**
-    - [Donate](https://www.buymeacoffee.com/uvr5)
+- **Apoya el Proyecto**
+     - [Donar](https://www.buymeacoffee.com/uvr5)
 
-## Installation
+## Instalación
 
-These bundles contain the UVR interface, Python, PyTorch, and other dependencies needed to run the application effectively. No prerequisites are required.
+Estos paquetes contienen la interfaz UVR, Python, PyTorch y otras dependencias necesarias para ejecutar la aplicación de manera efectiva. No se requieren requisitos previos.
 
-### Windows Installation
+### Instalación de Windows
 
-- Please Note:
-    - This installer is intended for those running Windows 10 or higher. 
-    - Application functionality for systems running Windows 7 or lower is not guaranteed.
-    - Application functionality for Intel Pentium & Celeron CPUs systems is not guaranteed.
-    - You must install UVR to the main C:\ drive. Installing UVR to a secondary drive will cause instability.
+- Tenga en cuenta:
+     - Este instalador está destinado a aquellos que ejecutan Windows 10 o superior.
+     - No se garantiza la funcionalidad de la aplicación para sistemas que ejecutan Windows 7 o inferior.
+     - No se garantiza la funcionalidad de la aplicación para los sistemas de CPU Intel Pentium y Celeron.
+     - Debe instalar UVR en la unidad principal C:\. La instalación de UVR en una unidad secundaria provocará inestabilidad.
 
-- Download the UVR installer for Windows via the link below:
-    - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/UVR_v5.5.1_setup.exe)
-    - [Main Download Link mirror](https://www.mediafire.com/file_premium/j8hkuvbic6nqy7i/UVR_v5.5.1_setup.exe/file)
-- Update Package instructions for those who have UVR already installed:
-    - If you already have UVR installed you can install this package over it or download it straight from the application.
+- Descargue el instalador UVR para Windows a través del siguiente enlace:
+     - [Enlace de descarga principal](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/UVR_v5.5.1_setup.exe)
+     - [Espejo de enlace de descarga principal] (https://www.mediafire.com/file_premium/j8hkuvbic6nqy7i/UVR_v5.5.1_setup.exe/file)
+- Instrucciones del paquete de actualización para aquellos que ya tienen UVR instalado:
+     - Si ya tienes instalado UVR puedes instalar este paquete sobre él o descargarlo directamente desde la aplicación.
 
-<details id="WindowsManual">
-  <summary>Windows Manual Installation</summary>
+<detalles id="WindowsManual">
+   <summary>Instalación manual de Windows</summary>
 
-### Manual Windows Installation
+### Instalación manual de Windows
 
-- Download and extract the repository [here](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
-- Download and install Python [here](https://www.python.org/ftp/python/3.9.8/python-3.9.8-amd64.exe)
-   - Make sure to check "Add python.exe to PATH" during the install
-- Run the following commands from the extracted repo directory:
+- Descarga y extrae el repositorio [aquí](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
+- Descargue e instale Python [aquí] (https://www.python.org/ftp/python/3.9.8/python-3.9.8-amd64.exe)
+    - Asegúrese de marcar "Agregar python.exe a PATH" durante la instalación
+- Ejecute los siguientes comandos desde el directorio del repositorio extraído:
 
 ```
-python.exe -m pip install -r requirements.txt
+python.exe -m pip install -r requisitos.txt
 ```
 
-If you have a compatible Nvidia GPU, run the following command:
+Si tiene una GPU Nvidia compatible, ejecute el siguiente comando:
 
 ```
 python.exe -m pip install --upgrade torch --extra-index-url https://download.pytorch.org/whl/cu117
 ```
 
-If you do not have FFmpeg or Rubber Band installed and want to avoid going through the process of installing them the long way, follow the instructions below.
+Si no tiene instalado FFmpeg o Rubber Band y desea evitar pasar por el largo proceso de instalación, siga las instrucciones a continuación.
 
-**FFmpeg Installation**
+**Instalación de FFmpeg**
 
-- Download the precompiled build [here](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip)
-- From the archive, extract the following file to the UVR application directory:
-   - ```ffmpeg-5.1.2-essentials_build/bin/ffmpeg.exe```
+- Descargue la compilación precompilada [aquí] (https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip)
+- Del archivo, extraiga el siguiente archivo al directorio de la aplicación UVR:
+    - ```ffmpeg-5.1.2-essentials_build/bin/ffmpeg.exe```
 
-**Rubber Band Installation**
+**Instalación de banda elástica**
 
-In order to use the Time Stretch or Change Pitch tool, you'll need Rubber Band.
+Para usar la herramienta Time Stretch o Change Pitch, necesitarás una banda elástica.
 
-- Download the precompiled build [here](https://breakfastquay.com/files/releases/rubberband-3.1.2-gpl-executable-windows.zip)
-- From the archive, extract the following files to the UVR application directory:
-   - ```rubberband-3.1.2-gpl-executable-windows/rubberband.exe```
-   - ```rubberband-3.1.2-gpl-executable-windows/sndfile.dll```
+- Descargue la compilación precompilada [aquí] (https://breakfastquay.com/files/releases/rubberband-3.1.2-gpl-executable-windows.zip)
+- Del archivo, extraiga los siguientes archivos al directorio de la aplicación UVR:
+    - ```rubberband-3.1.2-gpl-ejecutable-windows/rubberband.exe```
+    - ```rubberband-3.1.2-gpl-ejecutable-windows/sndfile.dll```
 
-</details>
+</detalles>
 
-### MacOS Installation
+### Instalación de Mac OS
 
-- Please Note:
-    - This bundle is intended for those running macOS Catalina and above.
-    - Application functionality for systems running macOS Mojave or lower is not guaranteed.
-    - Application functionality for older or budget Mac systems is not guaranteed.
-    - Once everything is installed, the application may take up to 5-10 minutes to start for the first time (depending on your Macbook).
+- Tenga en cuenta:
+     - Este paquete está diseñado para aquellos que ejecutan macOS Catalina y superior.
+     - No se garantiza la funcionalidad de la aplicación para sistemas que ejecutan macOS Mojave o inferior.
+     - No se garantiza la funcionalidad de la aplicación para sistemas Mac más antiguos o económicos.
+     - Una vez que todo esté instalado, la aplicación puede tardar entre 5 y 10 minutos en iniciarse por primera vez (dependiendo de su Macbook).
     
-- Download the UVR dmg for MacOS via one of the links below:
-    - Mac M1 (arm64) users:
-       - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/Ultimate_Vocal_Remover_v5_5_MacOS_arm64.dmg)
-       - [Main Download Link mirror](https://www.mediafire.com/file_premium/o0tfneebhqw554e/Ultimate_Vocal_Remover_v5_5_MacOS_arm64.dmg/file)
+- Descargue el archivo UVR dmg para MacOS a través de uno de los siguientes enlaces:
+     - Usuarios de Mac M1 (arm64):
+        - [Enlace de descarga principal](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/Ultimate_Vocal_Remover_v5_5_MacOS_arm64.dmg)
+        - [Espejo de enlace de descarga principal] (https://www.mediafire.com/file_premium/o0tfneebhqw554e/Ultimate_Vocal_Remover_v5_5_MacOS_arm64.dmg/file)
 
-    - Mac Intel (x86_64) users:
-       - [Main Download Link](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/Ultimate_Vocal_Remover_v5_5_MacOS_x86_64.dmg)
-       - [Main Download Link mirror](https://www.mediafire.com/file_premium/m19wucslk9uzpcc/Ultimate_Vocal_Remover_v5_5_MacOS_x86_64.dmg/file)
+     - Usuarios de Mac Intel (x86_64):
+        - [Enlace de descarga principal](https://github.com/Anjok07/ultimatevocalremovergui/releases/download/v5.5.0/Ultimate_Vocal_Remover_v5_5_MacOS_x86_64.dmg)
+        - [Reflejo del enlace de descarga principal] (https://www.mediafire.com/file_premium/m19wucslk9uzpcc/Ultimate_Vocal_Remover_v5_5_MacOS_x86_64.dmg/file)
 
-<details id="CannotOpen">
-  <summary>MacOS Users: Having Trouble Opening UVR?</summary>
+<detalles id="No se puede abrir">
+   <summary>Usuarios de MacOS: ¿Tienen problemas para abrir UVR?</summary>
 
-> Due to Apples strict application security, you may need to follow these steps to open UVR.
+> Debido a la estricta seguridad de las aplicaciones de Apple, es posible que deba seguir estos pasos para abrir UVR.
 >
-> First, run the following command via Terminal.app to allow applications to run from all sources (it's recommended that you re-enable this once UVR opens properly.)
-> 
+> Primero, ejecute el siguiente comando a través de Terminal.app para permitir que las aplicaciones se ejecuten desde todas las fuentes (se recomienda
+terminó que vuelva a habilitar esto una vez que UVR se abra correctamente).
+>
 > ```bash
 > sudo spctl --master-disable
 > ```
-> 
-> Second, run the following command to bypass Notarization: 
-> 
+>
+> En segundo lugar, ejecute el siguiente comando para evitar la notarización:
+>
 > ```bash
-> sudo xattr -rd com.apple.quarantine /Applications/Ultimate\ Vocal\ Remover.app
+> sudo xattr -rd com.apple.quarantine /Aplicaciones/Ultimate\ Vocal\ Remover.app
 > ```
 
-</details>
+</detalles>
 
-<details id="MacInstall">
-  <summary>Manual MacOS Installation</summary>
+<detalles id="MacInstall">
+   <summary>Instalación manual de MacOS</summary>
 
-### Manual MacOS Installation
+### Instalación manual de MacOS
 
-- Download and save this repository [here](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
-- Download and install Python 3.10 [here](https://www.python.org/ftp/python/3.10.9/python-3.10.9-macos11.pkg)
-- From the saved directory run the following - 
-
-```
-pip3 install -r requirements.txt
-```
-
-- If your Mac is running with an M1, please run the following command next. If not, skip this step. - 
+- Descarga y guarda este repositorio [aquí](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
+- Descargue e instale Python 3.10 [aquí](https://www.python.org/ftp/python/3.10.9/python-3.10.9-macos11.pkg)
+- Desde el directorio guardado ejecuta lo siguiente -
 
 ```
-cp /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/_soundfile_data/libsndfile_arm64.dylib /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/_soundfile_data/libsndfile.dylib
+pip3 install -r requisitos.txt
 ```
 
-**FFmpeg Installation**
+- Si su Mac se ejecuta con un M1, ejecute el siguiente comando a continuación. Si no, omita este paso. -
 
-- Once everything is done installing, download the correct FFmpeg binary for your system [here](http://www.osxexperts.net) and place it into the main application directory.
+```
+cp /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/_soundfile_data/libsndfile_arm64.dylib /Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site- paquetes/_soundfile_data/libsndfile.dylib
+```
 
-**Rubber Band Installation**
+**Instalación de FFmpeg**
 
-In order to use the Time Stretch or Change Pitch tool, you'll need Rubber Band.
+- Una vez que todo haya terminado con la instalación, descargue el binario FFmpeg correcto para su sistema [aquí] (http://www.osxexperts.net) y colóquelo en el directorio principal de la aplicación.
 
-- Download the precompiled build [here](https://breakfastquay.com/files/releases/rubberband-3.1.2-gpl-executable-windows.zip)
-- From the archive, extract the following files to the UVR/lib_v5 application directory:
-   - ```rubberband-3.1.2-gpl-executable-macos/rubberband```
+**Instalación de banda elástica**
 
-This process has been tested on a MacBook Pro 2021 (using M1) and a MacBook Air 2017 and is confirmed to be working on both.
+Para usar la herramienta Time Stretch o Change Pitch, necesitarás una banda elástica.
 
-</details>
+- Descargue la compilación precompilada [aquí] (https://breakfastquay.com/files/releases/rubberband-3.1.2-gpl-executable-windows.zip)
+- Del archivo, extraiga los siguientes archivos al directorio de la aplicación UVR/lib_v5:
+    - ```rubberband-3.1.2-gpl-ejecutable-macos/rubberband```
 
-### Linux Installation
+Este proceso ha sido probado en una MacBook Pro 2021 (usando M1) y una MacBook Air 2017 y se confirma que funciona en ambas.
 
-<details id="LinuxInstall">
-  <summary>See Linux Installation Instructions</summary>
+</detalles>
+
+### Instalación de Linux
+
+<detalles id="LinuxInstall">
+   <summary>Consulte las instrucciones de instalación de Linux</summary>
 
 <br />
     
-**These install instructions are for Ubuntu 22.10.**
+**Estas instrucciones de instalación son para Ubuntu 22.10.**
 
-- Download and save this repository [here](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
-- From the saved directory run the following commands in this order- 
+- Descarga y guarda este repositorio [aquí](https://github.com/Anjok07/ultimatevocalremovergui/archive/refs/heads/master.zip)
+- Desde el directorio guardado, ejecute los siguientes comandos en este orden-
 
 ```
-sudo apt update && sudo apt upgrade
-sudo apt-get update
-sudo apt install ffmpeg
-sudo apt install python3-pip
+actualización de sudo apt && actualización de sudo apt
+sudo apt-obtener actualización
+sudo apt instalar ffmpeg
+sudo apt instalar python3-pip
 sudo apt-get -y install python3-tk
-pip3 install -r requirements.txt
+pip3 install -r requisitos.txt
 ```
 
-</details>
+</detalles>
 
-### Other Application Notes
+### Otras notas de aplicación
 
-- Nvidia RTX 1060 6GB is the minimum requirement for GPU conversions.
-- Nvidia GPUs with at least 8GBs of V-RAM are recommended.
-- AMD Radeon GPUs are not supported at this time.
-- This application is only compatible with 64-bit platforms. 
-- This application relies on the Rubber Band library for the Time-Stretch and Pitch-Shift options.
-- This application relies on FFmpeg to process non-wav audio files.
-- The application will automatically remember your settings when closed.
-- Conversion times will significantly depend on your hardware. 
-- These models are computationally intensive. 
+- Nvidia RTX 1060 6GB es el requisito mínimo para las conversiones de GPU.
+- Se recomiendan GPU Nvidia con al menos 8 GB de V-RAM.
+- Las GPU AMD Radeon no son compatibles en este momento.
+- Esta aplicación solo es compatible con plataformas de 64 bits.
+- Esta aplicación se basa en la biblioteca de bandas elásticas para las opciones Time-Stretch y Pitch-Shift.
+- Esta aplicación se basa en FFmpeg para procesar archivos de audio no wav.
+- La aplicación recordará automáticamente su configuración cuando se cierre.
+- Los tiempos de conversión dependerán significativamente de su hardware.
+- Estos modelos son computacionalmente intensivos.
 
-## Change Log
+## Registro de cambios
 
-### Most Recent Changes:
-- Fixed Download Center model list issue.
-- Fixed audio clip in ensemble mode.
-- Fixed output model name issue in ensemble mode.
-- Added "Batch Mode" for MDX-Net to increase performance.
-  - Batch Mode is more memory efficient.
-  - Batch Mode produces the best output, regardless of batch size.
-- Added Batch Mode for VR Architecture.
-- Added Mixer Mode for Demucs.
-  - This option may improve separation for some 4-stem models.
+### Cambios más recientes:
+- Se corrigió el problema de la lista de modelos del Centro de descargas.
+- Clip de audio fijo en modo conjunto.
+- Se corrigió el problema del nombre del modelo de salida en el modo conjunto.
+- Se agregó "Modo por lotes" para MDX-Net para aumentar el rendimiento.
+   - El modo por lotes es más eficiente en memoria.
+   - El modo por lotes produce la mejor salida, independientemente del tamaño del lote.
+- Se agregó el modo por lotes para la arquitectura VR.
+- Modo Mezclador agregado para Demucs.
+   - Esta opción puede mejorar la separación para algunos modelos de 4 vástagos.
 
-### Fixes & Changes going from UVR v5.4 to v5.5:
+### Correcciones y cambios que van de UVR v5.4 a v5.5:
 
-- The progress bar is now fully synced up with every process in the application.
-- Drag-n-drop feature should now work every time.
-- Users can now drop large batches of files and directories as inputs. When directories are dropped, the application will search for any file with an audio extension and add it to the list of inputs.
-- Fixed low-resolution icon.
-- Added the ability to download models manually if the application can't connect to the internet.
-- Various bug fixes for the Download Center.
-- Various design changes.
+- La barra de progreso ahora está completamente sincronizada con cada proceso en la aplicación.
+- La función de arrastrar y soltar ahora debería funcionar siempre.
+- Los usuarios ahora pueden colocar grandes lotes de archivos y directorios como entradas. Cuando se eliminan los directorios, la aplicación buscará cualquier archivo con una extensión de audio y lo agregará a la lista de entradas.
+- Icono fijo de baja resolución.
+- Se agregó la capacidad de descargar modelos manualmente si la aplicación no puede conectarse a Internet.
+- Varias correcciones de errores para el Centro de descargas.
+- Varios cambios de diseño.
 
-### Performance:
+### Actuación:
 
-- Model load times are faster.
-- Importing/exporting audio files is faster.
+- Los tiempos de carga del modelo son más rápidos.
+- La importación/exportación de archivos de audio es más rápida.
 
-### New Options:
+### Nuevas opciones:
 
-- "Select Saved Settings" option - Allows the user to save the current settings of the whole application. You can also load saved settings or reset them to the default.
-- "Right-click" menu - Allows for quick access to important options.
-- "Help Hints" option - When enabled, users can hover over options to see pop-up text that describes that option. The right-clicking option also allows copying the "Help Hint" text.
-- Secondary Model Mode - This option is an expanded version of the "Demucs Model" option only available to MDX-Net. Except now, this option is available in all three AI Networks and for any stem. Any model can now be Secondary, and the user can choose the amount of influence it has on the final result.
-- Robust caching for ensemble mode, allowing for much faster processing times.
-- Clicking the "Input" field will pop up a new window that allows the user to go through all of the selected audio inputs. Within this menu, users can:
-    - Remove inputs.
-    - Verify inputs.
-    - Create samples of selected inputs.
-- "Sample Mode" option - Allows the user to process only part of a track to sample settings or a model without running a complete conversion.
-    - The number in the parentheses is the current number of seconds the generated sample will be.
-    - You can choose the number of seconds to extract from the track in the "Additional Settings" menu.
+- Opción "Seleccionar configuración guardada": permite al usuario guardar la configuración actual de toda la aplicación. También puede cargar configuraciones guardadas o restablecerlas a los valores predeterminados.
+- Menú "clic derecho" - Permite un acceso rápido a opciones importantes.
+- Opción "Consejos de ayuda": cuando está habilitada, los usuarios pueden pasar el cursor sobre las opciones para ver el texto emergente que describe esa opción. La opción de hacer clic derecho también permite copiar el texto "Sugerencia de ayuda".
+- Modo de modelo secundario: esta opción es una versión ampliada de la opción "Modelo Demucs" solo disponible para MDX-Net. Excepto ahora, esta opción está disponible en las tres AI Networks y para cualquier vástago. Cualquier modelo ahora puede ser secundario y el usuario puede elegir la cantidad de influencia que tiene en el resultado final.
+- Almacenamiento en caché robusto para el modo de conjunto, lo que permite tiempos de procesamiento mucho más rápidos.
+- Al hacer clic en el campo "Entrada", aparecerá una nueva ventana que t permite al usuario pasar por todas las entradas de audio seleccionadas. Dentro de este menú, los usuarios pueden:
+     - Eliminar entradas.
+     - Verificar entradas.
+     - Crear muestras de insumos seleccionados.
+- Opción "Modo de muestra": permite al usuario procesar solo una parte de una pista para muestrear configuraciones o un modelo sin ejecutar una conversión completa.
+     - El número entre paréntesis es el número actual de segundos que tendrá la muestra generada.
+     - Puede elegir la cantidad de segundos para extraer de la pista en el menú "Configuración adicional".
 
-### VR Architecture:
+### Arquitectura de realidad virtual:
 
-- Ability to toggle "High-End Processing."
-- Support for the latest VR architecture
-    - Crop Size and Batch Size are specifically for models using the latest architecture only.
+- Posibilidad de alternar "Procesamiento de gama alta".
+- Soporte para la última arquitectura VR
+     - Tamaño de recorte y Tamaño de lote son específicamente para modelos que usan la arquitectura más reciente únicamente.
 
-### MDX-NET:
+### MDX-RED:
 
-- "Denoise Output" option results in cleaner results, but the processing time will be longer. This option has replaced Noise Reduction.
-- "Spectral Inversion" option uses spectral inversion techniques for a cleaner secondary stem result. This option may slow down the audio export process.
-- Secondary stem now has the same frequency cut-off as the main stem.
+- La opción "Salida de eliminación de ruido" da como resultado resultados más limpios, pero el tiempo de procesamiento será más largo. Esta opción ha reemplazado a la reducción de ruido.
+- La opción "Spectral Inversion" utiliza técnicas de inversión espectral para obtener un resultado de tallo secundario más limpio. Esta opción puede ralentizar el proceso de exportación de audio.
+- El vástago secundario ahora tiene el mismo corte de frecuencia que el vástago principal.
 
 ### Demucs:
 
-- Demucs v4 models are now supported, including the 6-stem model.
-- Combining remaining stems instead of inverting selected stem with the mixture only when a user does not select "All Stems."
-- A "Pre-process" model that allows the user to run an inference through a robust vocal or instrumental model and separate the remaining stems from its generated instrumental mix. This option can significantly reduce vocal bleed in other Demucs-generated non-vocal stems.
-  - The Pre-process model is intended for Demucs separations for all stems except vocals and instrumentals.
+- Los modelos Demucs v4 ahora son compatibles, incluido el modelo de 6 vástagos.
+- Combinar los tallos restantes en lugar de invertir el tallo seleccionado con la mezcla solo cuando un usuario no selecciona "Todos los tallos".
+- Un modelo de "Pre-proceso" que permite al usuario ejecutar una inferencia a través de un modelo vocal o instrumental robusto y separar los tallos restantes de su mezcla instrumental generada. Esta opción puede reducir significativamente el sangrado vocal en otras raíces no vocales generadas por Demucs.
+   - El modelo de preproceso está diseñado para separaciones de Demucs para todos los temas, excepto voces e instrumentales.
 
-### Ensemble Mode: 
+### Modo conjunto:
 
-- Ensemble Mode has been extended to include the following:
-    - "Averaging" is a new algorithm that averages the final results.
-    - Unlimited models in the ensemble.
-    - Ability to save different ensembles.
-    - Ability to ensemble outputs for all individual stem types.
-    - Ability to choose unique ensemble algorithms.
-    - Ability to ensemble all 4 Demucs stems at once.
+- El modo Conjunto se ha ampliado para incluir lo siguiente:
+     - "Averaging" es un nuevo algoritmo que promedia los resultados finales.
+     - Modelos ilimitados en el conjunto.
+     - Posibilidad de guardar diferentes conjuntos.
+     - Capacidad para ensamblar salidas para todos los tipos de tallos individuales.
+     - Capacidad para elegir algoritmos de conjunto únicos.
+     - Posibilidad de ensamblar los 4 tallos Demucs a la vez.
 
-## Troubleshooting
+## Solución de problemas
 
-### Common Issues
+### Problemas comunes
 
-- If FFmpeg is not installed, the application will throw an error if the user attempts to convert a non-WAV file.
-- Memory allocation errors can usually be resolved by lowering the "Chunk Size".
+- Si FFmpeg no está instalado, la aplicación arrojará un error si el usuario intenta convertir un archivo que no sea WAV.
+- Los errores de asignación de memoria generalmente se pueden resolver al reducir el "Tamaño del fragmento".
 
-### Issue Reporting
+### Informe de problemas
 
-Please be as detailed as possible when posting a new issue. 
+Sea lo más detallado posible cuando publique un nuevo problema.
 
-If possible, click the "Settings Button" to the left of the "Start Processing" button and click the "Error Log" button for detailed error information that can be provided to us.
+Si es posible, haga clic en el botón "Configuración" a la izquierda del botón "Iniciar procesamiento" y haga clic en el botón "Registro de errores" para obtener información detallada sobre errores que se nos puede proporcionar.
 
-## License
+## Licencia
 
-The **Ultimate Vocal Remover GUI** code is [MIT-licensed](LICENSE). 
+El código GUI de **Ultimate Vocal Remover** es [con licencia MIT] (LICENCIA).
 
-- **Please Note:** For all third-party application developers who wish to use our models, please honor the MIT license by providing credit to UVR and its developers.
+- **Tenga en cuenta:** Para todos los desarrolladores de aplicaciones de terceros que deseen utilizar nuestros modelos, respete la licencia MIT proporcionando crédito a UVR y sus desarrolladores.
 
-## Credits
+## Créditos
 
-- [DilanBoskan](https://github.com/DilanBoskan) - Your contributions at the start of this project were essential to the success of UVR. Thank you!
-- [Bas Curtiz](https://www.youtube.com/user/bascurtiz) - Designed the official UVR logo, icon, banner, and splash screen.
-- [tsurumeso](https://github.com/tsurumeso) - Developed the original VR Architecture code. 
-- [Kuielab & Woosung Choi](https://github.com/kuielab) - Developed the original MDX-Net AI code. 
-- [Adefossez & Demucs](https://github.com/facebookresearch/demucs) - Developed the original Demucs AI code. 
-- [KimberleyJSN](https://github.com/KimberleyJensen) - Advised and aided the implementation of the training scripts for MDX-Net and Demucs. Thank you!
-- [Hv](https://github.com/NaJeongMo/Colab-for-MDX_B) - Helped implement chunks into the MDX-Net AI code. Thank you!
+- [DilanBoskan](https://github.com/DilanBoskan) - Sus contribuciones al inicio de este proyecto fueron esenciales para el éxito de UVR. ¡Gracias!
+- [Bas Curtiz](https://www.youtube.com/user/bascurtiz) - Diseñé el logo, ícono, banner y pantalla de bienvenida oficial de la UVR.
+- [tsurumeso](https://github.com/tsurumeso) - Desarrolló el código original de VR Architecture.
+- [Kuielab & Woosung Choi](https://github.com/kuielab) - Desarrolló el código AI original de MDX-Net.
+- [Adefossez & Demucs](https://github.com/facebookresearch/demucs) - Desarrolló el código original de IA de Demucs.
+- [KimberleyJSN](https://github.com/KimberleyJensen) - Asesoró y ayudó en la implementación de los scripts de capacitación para MDX-Net y Demucs. ¡Gracias!
+- [Hv](https://github.com/NaJeongMo/Colab-for-MDX_B) - Ayudó a implementar fragmentos en el código MDX-Net AI. ¡Gracias!
 
-## Contributing
+## Contribuyendo
 
-- For anyone interested in the ongoing development of **Ultimate Vocal Remover GUI**, please send us a pull request, and we will review it. 
-- This project is 100% open-source and free for anyone to use and modify as they wish. 
-- We only maintain the development and support for the **Ultimate Vocal Remover GUI** and the models provided. 
+- Para cualquier persona interesada en el desarrollo continuo de **Ultimate Vocal Remover GUI**, envíenos una solicitud de extracción y la revisaremos.
+- Este proyecto es 100% de código abierto y gratuito para que cualquiera pueda usarlo y modificarlo como desee.
+- Solo mantenemos el desarrollo y el soporte para la GUI de **Ultimate Vocal Remover** y los modelos proporcionados.
 
-## References
-- [1] Takahashi et al., "Multi-scale Multi-band DenseNets for Audio Source Separation", https://arxiv.org/pdf/1706.09588.pdf
+## Referencias
+- [1] Takahashi et al., "DenseNets multibanda y multiescala para la separación de fuentes de audio", https://arxiv.org/pdf/1706.09588.pdf
